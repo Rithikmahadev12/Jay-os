@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Jay OS</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"/>
@@ -14,7 +14,6 @@
   --border:rgba(255,255,255,0.12);
   --accent:linear-gradient(135deg,#00f0ff,#6a5cff,#b026ff);
   --text:#fff;
-  --muted:rgba(255,255,255,0.5);
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -58,4 +57,183 @@ button{
   width:100%;padding:12px;border:none;border-radius:10px;
   background:var(--accent);
   color:white;font-weight:600;cursor:pointer;
+}
+
+#desktop{display:none;height:100%;flex-direction:column}
+
+.menubar{
+  height:40px;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0 16px;
+  border-bottom:1px solid var(--border);
+}
+
+.workspace{flex:1;position:relative}
+
+.dock{
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  display:flex;gap:10px;padding:10px 14px;border-radius:20px;
+}
+
+.dock-icon{
+  width:60px;height:60px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;cursor:pointer;
+  transition:.2s;
+}
+
+.dock-icon:hover{transform:translateY(-10px) scale(1.1)}
+
+.win{
+  position:absolute;width:800px;height:500px;
+  border-radius:16px;overflow:hidden;
+  top:80px;left:120px;
+  display:flex;flex-direction:column;
+}
+
+.win-titlebar{
+  height:40px;
+  display:flex;align-items:center;
+  padding:0 10px;
+  background:#111;
+}
+
+.win iframe{flex:1;border:none}
+</style>
+</head>
+
+<body>
+
+<div id="login-screen">
+  <div class="login-card glass">
+    <div class="login-title">🧊 Jay OS</div>
+    <input id="pass" type="password" placeholder="Access key"/>
+    <button onclick="doLogin()">Unlock</button>
+  </div>
+</div>
+
+<div id="desktop">
+  <div class="menubar glass">
+    <div>🧊 Jay OS</div>
+    <div id="time"></div>
+  </div>
+
+  <div class="workspace" id="workspace">
+    <div class="dock glass" id="dock"></div>
+  </div>
+</div>
+
+<script>
+const API = window.location.origin; // auto works on Render
+let ROLE = "user";
+let KEY = "";
+let APPS = [];
+
+async function doLogin(){
+  const key = document.getElementById("pass").value;
+
+  const res = await fetch(API + "/login", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({key})
+  });
+
+  const data = await res.json();
+
+  if(data.ok){
+    ROLE = data.role;
+    KEY = key;
+
+    document.getElementById("login-screen").style.display="none";
+    document.getElementById("desktop").style.display="flex";
+
+    await loadApps();
+    renderDock();
+
+    if(ROLE === "admin") addAdmin();
+  } else {
+    alert("wrong key");
+  }
+}
+
+async function loadApps(){
+  const res = await fetch(API + "/apps");
+  APPS = await res.json();
+}
+
+function renderDock(){
+  const dock = document.getElementById("dock");
+  dock.innerHTML = "";
+
+  APPS.slice(0,6).forEach(app=>{
+    const d = document.createElement("div");
+    d.className = "dock-icon glass";
+    d.innerHTML = app.icon || "🌐";
+    d.onclick = ()=>openApp(app);
+    dock.appendChild(d);
+  });
+}
+
+function openApp(app){
+  const win = document.createElement("div");
+  win.className = "win glass";
+
+  win.innerHTML = `
+    <div class="win-titlebar">
+      <button onclick="this.closest('.win').remove()">✕</button>
+      <span style="margin-left:10px">${app.name}</span>
+    </div>
+    <iframe src="${app.url}"></iframe>
+  `;
+
+  document.getElementById("workspace").appendChild(win);
+}
+
+function addAdmin(){
+  const btn = document.createElement("button");
+  btn.textContent = "Admin";
+  btn.style.marginLeft = "10px";
+  btn.onclick = openAdmin;
+  document.querySelector(".menubar").appendChild(btn);
+}
+
+function openAdmin(){
+  const win = document.createElement("div");
+  win.className = "win glass";
+
+  win.innerHTML = `
+    <div class="win-titlebar">
+      <button onclick="this.closest('.win').remove()">✕</button>
+      <span>Admin Panel</span>
+    </div>
+
+    <textarea id="adminBox" style="flex:1;background:black;color:#0f0"></textarea>
+    <button onclick="saveApps()">Save</button>
+  `;
+
+  document.getElementById("workspace").appendChild(win);
+  document.getElementById("adminBox").value = JSON.stringify(APPS,null,2);
+}
+
+async function saveApps(){
+  const data = JSON.parse(document.getElementById("adminBox").value);
+
+  await fetch(API + "/apps", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({key:KEY, apps:data})
+  });
+
+  alert("Saved globally");
+  APPS = data;
+  renderDock();
+}
+
+setInterval(()=>{
+  const t = new Date();
+  document.getElementById("time").textContent = t.toLocaleTimeString();
+},1000);
+</script>
+
+</body>
 </html>
