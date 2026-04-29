@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jay OS</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+
+<style>
+:root{
+  --bg:#03040a;
+  --glass:rgba(255,255,255,0.06);
+  --border:rgba(255,255,255,0.12);
+  --accent:linear-gradient(135deg,#00f0ff,#6a5cff,#b026ff);
+  --text:#fff;
+  --muted:rgba(255,255,255,0.5);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:radial-gradient(circle at 20% 20%, #0a0f2a, #03040a 60%);
+  color:var(--text);
+  font-family:'Syne',sans-serif;
+  height:100vh;
+  overflow:hidden;
+}
+
+.glass{
+  background:var(--glass);
+  border:1px solid var(--border);
+  backdrop-filter:blur(20px);
+}
+
+#login-screen{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.login-card{
+  padding:40px;
+  border-radius:20px;
+  text-align:center;
+  width:320px;
+}
+
+.login-title{font-size:26px;font-weight:800;margin-bottom:20px}
+
+input{
+  width:100%;padding:12px;border-radius:10px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,0.08);
+  color:white;
+  margin-bottom:10px;
+}
+
+button{
+  width:100%;padding:12px;border:none;border-radius:10px;
+  background:var(--accent);
+  color:white;font-weight:600;cursor:pointer;
+</html>
